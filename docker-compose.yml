@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: see-ya-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: seeya
+      POSTGRES_USER: seeya
+      POSTGRES_PASSWORD: seeya_local_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - see_ya_postgres_data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seeya -d seeya"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  see_ya_postgres_data:
