@@ -20,6 +20,40 @@ npm run dev
 
 Open <http://localhost:3000>.
 
+## Deploy it publicly
+
+The current app is one Node service that serves both the frontend and backend. The simplest production setup is:
+
+- **Render Web Service** for this repository
+- **Neon, Supabase, or another hosted PostgreSQL provider** for the database
+
+The local Docker database is only for development and cannot be used by a hosted deployment. On Render, create a Web Service from the repository with:
+
+```text
+Build command: npm install
+Start command: npm start
+```
+
+Add these environment variables in the service settings:
+
+```env
+NODE_ENV=production
+DATABASE_URL=<hosted PostgreSQL connection string>
+PUBLIC_URL=https://<your-render-domain>
+HACKCLUB_CLIENT_ID=<production Hack Club client id>
+HACKCLUB_CLIENT_SECRET=<production Hack Club client secret>
+HACKCLUB_REDIRECT_URI=https://<your-render-domain>/auth/callback
+HACKATIME_CLIENT_ID=<Hackatime client id>
+HACKATIME_CLIENT_SECRET=<Hackatime client secret>
+HACKATIME_REDIRECT_URI=https://<your-render-domain>/auth/hackatime/callback
+HACKATIME_TOKEN_KEY=<long random production secret>
+ADMIN_SLACK_IDS=U093BDEP8FJ,U0AJ5J6FETU
+```
+
+Register the two HTTPS callback URLs in the Hack Club and Hackatime OAuth applications before testing sign-in. Deploy the service, open its HTTPS URL, sign in, connect Hackatime, submit a test project, and place a small test order. The database schema is initialized by the backend on startup. Do not upload `.env`, use the local Docker `DATABASE_URL`, or expose OAuth secrets in frontend code.
+
+Vercel can host the static files, but this repository is not a Vercel-native serverless app: its current backend is a long-running Node HTTP server and needs persistent PostgreSQL. Use the single Render deployment above unless the backend is later rewritten into Vercel functions.
+
 ## Airtable setup
 
 SEE YA has its own PostgreSQL database and does not use BEEST's database. `docker compose up -d db` creates the isolated `see_ya_postgres_data` volume, database `seeya`, user `seeya`, and schema automatically. The backend stores submissions and grant requests in PostgreSQL first. `docker compose down` stops the containers; the data volume remains. To intentionally remove only this SEE YA database data, use `docker compose down -v`.
